@@ -1,36 +1,39 @@
 package com.example.demo.controller;
 
-import com.example.demo.service.EncryptionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.demo.service.EncryptionService;
+
+import java.util.Base64;
+
 @RestController
-@RequestMapping("/api/encryption")
+@RequestMapping("/api")
 public class EncryptionController {
 
-    private final EncryptionService encryptionService;
+ @Autowired
+ private EncryptionService encryptionService;
 
-    public EncryptionController(EncryptionService encryptionService) {
-        this.encryptionService = encryptionService;
-    }
+ @PostMapping("/encrypt")
+ public ResponseEntity<String> encrypt(@RequestBody String jsonData) {
+     try {
+         byte[] encryptedData = encryptionService.encrypt(jsonData);
+         String encodedData = Base64.getEncoder().encodeToString(encryptedData);
+         return ResponseEntity.ok(encodedData);
+     } catch (Exception e) {
+         return ResponseEntity.status(500).body("Encryption error: " + e.getMessage());
+     }
+ }
 
-    @PostMapping("/encrypt")
-    public ResponseEntity<String> encrypt(@RequestBody String jsonData) {
-        try {
-            String encryptedData = encryptionService.encryptData(jsonData);
-            return ResponseEntity.ok(encryptedData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Encryption failed: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/decrypt")
-    public ResponseEntity<String> decrypt(@RequestBody String encryptedData) {
-        try {
-            String decryptedData = encryptionService.decryptData(encryptedData);
-            return ResponseEntity.ok(decryptedData);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Decryption failed: " + e.getMessage());
-        }
-    }
+ @PostMapping("/decrypt")
+ public ResponseEntity<String> decrypt(@RequestBody String encryptedData) {
+     try {
+         byte[] decodedData = Base64.getDecoder().decode(encryptedData);
+         String decryptedData = encryptionService.decrypt(decodedData);
+         return ResponseEntity.ok(decryptedData);
+     } catch (Exception e) {
+         return ResponseEntity.status(500).body("Decryption error: " + e.getMessage());
+     }
+ }
 }

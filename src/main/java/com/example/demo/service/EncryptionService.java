@@ -1,22 +1,29 @@
 package com.example.demo.service;
 
-import com.example.demo.utils.RSAUtil;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import javax.crypto.Cipher;
+
 import org.springframework.stereotype.Service;
+
+import com.example.demo.util.KeyUtil;
 
 @Service
 public class EncryptionService {
 
-    private final RSAUtil rsaUtil;
+ private PublicKey publicKey = KeyUtil.getKeyPair().getPublic();
+ private PrivateKey privateKey = KeyUtil.getKeyPair().getPrivate();
 
-    public EncryptionService(RSAUtil rsaUtil) {
-        this.rsaUtil = rsaUtil;
-    }
+ public byte[] encrypt(String data) throws Exception {
+     Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+     cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+     return cipher.doFinal(data.getBytes("UTF-8"));
+ }
 
-    public String encryptData(String jsonData) throws Exception {
-        return rsaUtil.encrypt(jsonData);
-    }
-
-    public String decryptData(String encryptedData) throws Exception {
-        return rsaUtil.decrypt(encryptedData);
-    }
+ public String decrypt(byte[] data) throws Exception {
+     Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+     cipher.init(Cipher.DECRYPT_MODE, privateKey);
+     byte[] decryptedData = cipher.doFinal(data);
+     return new String(decryptedData, "UTF-8");
+ }
 }
